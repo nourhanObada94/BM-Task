@@ -1,0 +1,52 @@
+#this yaml to run the main application
+trigger:
+- none
+
+pool:
+  vmImage: 'windows-latest'  # use any image required
+
+variables:
+  JAVA_HOME: '/usr/lib/jvm/java-11-openjdk-amd64'  # Set JAVA_HOME for JDK 11
+  MAVEN_OPTS: '-Xmx1024m'  # Set Maven options
+
+steps:
+- task: UseJava@1
+  inputs:
+    versionSpec: '11'  # Use JDK 11
+    jdkArchitectureOption: 'x64'
+    jdkSourceOption: 'PreInstalled'
+    jdkFile: ''
+    jdkDestinationDirectory: ''
+
+- script: 
+
+- task: Maven@3
+  inputs:
+    mavenPomFile: 'pom.xml'  # Path to your pom.xml file
+    goals: 'clean install'  # Maven goals to run
+    options: '-Dmaven.test.skip=true'  # Skip tests for faster builds (adjust as needed)
+    mavenOptions: '--batch-mode'
+  displayName: 'Build with Maven'
+
+- task: Maven@3
+  inputs:
+    mavenPomFile: 'pom.xml'  # Path to your pom.xml file
+    goals: 'test'  # Run tests
+    mavenOptions: '--batch-mode'
+  displayName: 'Run Tests'
+
+- task: ArchiveFiles@2
+  inputs:
+    rootFolderOrFile: '$(System.DefaultWorkingDirectory)/target'
+    includeRootFolder: false
+    archiveType: 'zip'
+    archiveFile: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip'
+    replaceExistingArchive: true
+  displayName: 'Archive Build Artifacts'
+
+- task: PublishBuildArtifacts@1
+  inputs:
+    PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+    ArtifactName: 'drop'
+    publishLocation: 'Container'
+  displayName: 'Publish Build Artifacts'
