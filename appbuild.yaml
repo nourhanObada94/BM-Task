@@ -8,6 +8,9 @@ pool:
 variables:
   JAVA_HOME: '/usr/lib/jvm/java-11-openjdk-amd64'  # Set JAVA_HOME for JDK 11
   MAVEN_OPTS: '-Xmx1024m'  # Set Maven options
+  azureSubscription: '<YOUR_AZURE_SUBSCRIPTION>'  # Name of the Azure subscription
+  appName: 'demo-app-service'  # Name of your Azure App Service
+  packagePath: 'target/*.jar'  # Path to your JAR file
 
 steps:
 - task: UseJava@1
@@ -50,3 +53,11 @@ steps:
     ArtifactName: 'drop'
     publishLocation: 'Container'
   displayName: 'Publish Build Artifacts'
+
+- task: AzureWebApp@1
+  inputs:
+    azureSubscription: '$(azureSubscription)'
+    appName: '$(appName)'
+    package: '$(Pipeline.Workspace)/drop/$(packagePath)'
+    deploymentMethod: 'auto'  # Automatically detect deployment method
+  displayName: 'Deploy to Azure App Service'
