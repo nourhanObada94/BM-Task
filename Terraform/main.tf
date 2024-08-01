@@ -141,3 +141,45 @@ resource "azurerm_network_security_rule" "outbound_security_rule" {
   resource_group_name         = azurerm_resource_group.demo.name
   network_security_group_name = azurerm_network_security_group.demosecuritygroup.name
 }
+
+#this manages the insights component
+resource "azurerm_application_insights" "demoinsights" {
+  name                = "demo-insights"
+  location            = azurerm_resource_group.demo.location
+  resource_group_name = azurerm_resource_group.demo.name
+  application_type    = "web"
+}
+
+#an example of an alert in case the error specified occurs
+resource "azurerm_monitor_metric_alert" "insightsalert" {
+  name                = "insights-alert"
+  resource_group_name = azurerm_resource_group.demo.name
+  scopes              = [azurerm_app_service.demoappservice.id]
+  criteria            = {
+    metric_name        = "HttpServerErrors"
+    metric_namespace   = "Microsoft.Web/sites"
+    operator           = "GreaterThan"
+    threshold          = 5
+    time_aggregation   = "Total"
+    window_size        = "PT5M"
+  }
+  description         = "Alert if the number of HTTP server errors exceeds 5 in 5 minutes."
+  severity            = 2
+  evaluation_frequency = "PT1M"
+  
+  action {
+    action_group_id = azurerm_action_group.example.id
+  }
+}
+
+#in case of an alert, this sends an email
+resource "azurerm_action_group" "alertaction" {
+  name                = "alert-action-group"
+  short_name          = "ealert"
+  resource_group_name = azurerm_resource_group.demo.name
+  email_receiver {
+    name                    = "demo-email"
+    email_address           = "nourhanobada94@gmai.com"
+  }
+}
+
