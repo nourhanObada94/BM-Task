@@ -1,0 +1,28 @@
+#this yaml to run the terraform configuration
+trigger:
+- none  # to run it manual
+
+jobs:
+- job: Terraform
+  displayName: 'Run Terraform'
+  pool:
+    vmImage: 'windows-latest'  # or use a specific image if needed
+
+  steps:
+  - task: UseTerraform@0
+    inputs:
+      versionSpec: '1.5.7'  # specify the Terraform version you need
+
+  - checkout: self
+
+  - script: |
+      terraform init
+    displayName: 'Initialize Terraform'
+
+  - script: |
+      terraform plan
+    displayName: 'Terraform Plan'
+
+  - script: |
+      terraform apply
+    displayName: 'Terraform Apply'
